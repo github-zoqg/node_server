@@ -1,13 +1,58 @@
-import db from "../db/index.js";
+import { pool_user } from "../db/index.js";
+import { createtoken } from "../router/token.js";
 
 // 注册新用户的处理函数
 const reg = (req, res) => {
-  res.send("reg ok 接口返回成功");
+  const reqdata = req.body;
+  if (!reqdata.password || !reqdata.phone) {
+    return res.cc("参数缺失");
+  }
+  let sqlStr = "select phone from list where phone=?";
+
+  pool_user.query(sqlStr, reqdata.phone, (err, results) => {
+    if (err) return res.cc(err);
+    if (results.length) {
+      return res.cc("该手机号已提交,请更换手机号");
+    } else {
+      // 2. 定义插入新用户的sql语句
+      const sql = "insert into list set ?";
+      let { password, phone } = reqdata;
+      // 2.1 调用db.query()执行sql语句
+      pool_user.query(
+        sql,
+        Object.assign(
+          { password, phone },
+          { date: new Date().setHours(0, 0, 0, 0) }
+        ),
+        (err, results) => {
+          // 2.2 判断sql语句是否执行成功
+          if (err) return res.cc(err);
+          // 3.返回成功提示
+          res.send({ status: 200, message: "提交成功" });
+        }
+      );
+    }
+  });
 };
 
 // 登陆的处理函数
 const login = (req, res) => {
-  res.send("login ok");
+  const reqdata = req.body;
+  if (!reqdata.password || !reqdata.phone) {
+    return res.cc("参数缺失");
+  }
+  let sqlStr = "select * from list where phone=?";
+
+  pool_user.query(sqlStr, reqdata.phone, (err, results) => {
+    if (err) return res.cc(err);
+    if (results.length && results[0].password === reqdata.password) {
+      const token = createtoken(results[0].id);
+      // res.json({ token });
+      return res.send({ status: 200, message: "登陆成功", data: { token } });
+    } else {
+      return res.cc("手机号或密码错误", 402);
+    }
+  });
 };
 
 const getlist = (req, res) => {
@@ -49,7 +94,7 @@ const getlist = (req, res) => {
   //   });
   // 2.1 调用db.query()执行sql语句
 
-  db.query(
+  pool_user.query(
     sql,
     reqArr,
     // reqdata.name,
@@ -76,7 +121,7 @@ const add = (req, res) => {
   }
   let sqlStr = "select phone from custom_list where phone=?";
 
-  db.query(sqlStr, reqdata.phone, (err, results) => {
+  pool_user.query(sqlStr, reqdata.phone, (err, results) => {
     if (err) return res.cc(err);
     if (results.length) {
       return res.cc("该手机号已提交,请更换手机号");
@@ -84,7 +129,7 @@ const add = (req, res) => {
       // 2. 定义插入新用户的sql语句
       const sql = "insert into custom_list set ?";
       // 2.1 调用db.query()执行sql语句
-      db.query(
+      pool_user.query(
         sql,
         Object.assign(reqdata, { date: new Date().setHours(0, 0, 0, 0) }),
         (err, results) => {
@@ -108,11 +153,11 @@ const update = (req, res) => {
     return res.cc("id缺失");
   }
   let sqlStr = "select id from custom_list where id=?";
-  db.query(sqlStr, reqdata.id, (err, results) => {
+  pool_user.query(sqlStr, reqdata.id, (err, results) => {
     if (err) return res.cc(err);
     if (results.length) {
       let sql = "update custom_list set ? where id=?";
-      db.query(sql, [reqdata, reqdata.id], (err, results) => {
+      pool_user.query(sql, [reqdata, reqdata.id], (err, results) => {
         if (err) return res.cc(err);
         return res.send({
           status: 200,
@@ -129,7 +174,7 @@ const del = (req, res) => {
   if (!reqdata.id) return res.cc("id缺失");
   // 删除数据
   const sqlStr = "delete from custom_list where id=?";
-  db.query(sqlStr, reqdata.id, (err, results) => {
+  pool_user.query(sqlStr, reqdata.id, (err, results) => {
     // 2.2 判断sql语句是否执行成功
     if (err) return res.cc(err);
     // 3.返回成功提示

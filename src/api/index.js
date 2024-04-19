@@ -5,7 +5,8 @@ import cors from "cors";
 // 解析参数
 import bodyParser from "body-parser";
 // 引入router
-import useRouter from "../router/index.js";
+import router_user from "../router/index.js";
+import router_goods from "../router/goods.js";
 
 // 2.创建服务器的实例对象
 const app = express();
@@ -47,7 +48,8 @@ app.use((req, res, next) => {
   }
 });
 
-app.use("/test/custom", useRouter);
+app.use("/user", router_user);
+app.use("/goods", router_goods);
 // 定义POST请求的路由
 // app.post("/api", (req, res) => {
 //   console.log(req.body);

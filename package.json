@@ -8,17 +8,21 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "express": "^4.17.3",
+    "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.4",
     "mysql": "^2.18.1",
     "nodejs-websocket": "^1.7.2",
     "ws": "^8.5.0"
   },
-  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/api/index.js"
   },
   "author": "",
   "license": "ISC",
   "keywords": [],
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
 }
