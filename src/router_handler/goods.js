@@ -1,4 +1,4 @@
-import { pool_goods } from "../db/index.js";
+import { pool_goods, pool_card, pool_record } from "../db/index.js";
 import { paramsPlicing } from "../utils/index.js";
 
 let sqlstr = "select * from goods_list_9999";
@@ -35,7 +35,7 @@ const getGoodsDetail = (req, res) => {
     }
     res.send({
       status: 200,
-      list: results[0],
+      data: results[0],
       message: "成功",
     });
   });
@@ -46,25 +46,22 @@ const addCart = (req, res) => {
   if (!reqdata.goodsId) {
     return res.cc("参数缺失");
   }
-  let sqlStr = "select * from goods_list_9999 where goods_id=?";
 
-  pool_goods.query(sqlStr, reqdata.goods_id, (err, results) => {
+  let sqlstr = "select * from card_list_9999";
+  let { goodsId, storeId, userId } = reqdata;
+  let { sql, reqArr } = paramsPlicing(sqlstr, { goodsId, storeId, userId });
+  pool_card.query(sql, reqArr, (err, results) => {
     if (err) return res.cc(err);
     if (results.length) {
-      // 定义更新商品数量sql语句
-      const sql = "update goods_list_9999 set ? where num=?";
-      // 调用db.query()执行sql语句
-      pool_goods.query(sql, results.length, (err, results) => {
-        // 2.2 判断sql语句是否执行成功
-        if (err) return res.cc(err);
-        // 3.返回成功提示
-        res.send({ status: 200, message: "成功" });
-      });
+      updateCartList(req, res);
     } else {
-      const sql = "insert into goods set ?";
-      pool_goods.query(
+      const sql = "insert into card_list_9999 set ?";
+      pool_card.query(
         sql,
-        Object.assign(reqdata, { date: new Date().setHours(0, 0, 0, 0) }),
+        Object.assign(
+          { ...reqdata, num: 1 },
+          { date: new Date().setHours(0, 0, 0, 0) }
+        ),
         (err, results) => {
           // 2.2 判断sql语句是否执行成功
           if (err) return res.cc(err);
@@ -78,10 +75,12 @@ const addCart = (req, res) => {
 
 const deleteCart = (req, res) => {
   const reqdata = req.body;
-  if (!reqdata.goods_id) return res.cc("goods_id缺失");
+  let { goodsId, storeId, userId } = reqdata;
+  if (!goodsId || !storeId || !userId) return res.cc("参数缺失");
   // 删除数据
-  const sqlStr = "delete from goods_list_9999 where goods_id=?";
-  pool_goods.query(sqlStr, reqdata.goods_id, (err, results) => {
+  const sqlStr =
+    "delete from card_list_9999 where goodsId=? and storeId=? and userId=?";
+  pool_card.query(sqlStr, [goodsId, storeId, userId], (err, results) => {
     // 2.2 判断sql语句是否执行成功
     if (err) return res.cc(err);
     // 3.返回成功提示
@@ -90,10 +89,11 @@ const deleteCart = (req, res) => {
 };
 
 const getCartList = (req, res) => {
+  let sqlstr = "select * from card_list_9999";
   const reqdata = req.body;
-  let { sql, reqArr } = paramsPlicing(sql, reqdata);
+  let { sql, reqArr } = paramsPlicing(sqlstr, reqdata);
   // 调用db.query()执行sql语句
-  pool_goods.query(sql, reqArr, (err, results) => {
+  pool_card.query(sql, reqArr, (err, results) => {
     // 判断sql语句是否执行成功
     if (err) return res.cc(err);
     // 返回数据
@@ -106,42 +106,60 @@ const getCartList = (req, res) => {
   });
 };
 
-const addRecord = (req, res) => {
+const updateCartList = (req, res) => {
   const reqdata = req.body;
-  if (!reqdata.goods_id) {
+  let { goodsId, storeId, userId, num, source } = reqdata;
+  if (!goodsId || !storeId || !userId) {
     return res.cc("参数缺失");
   }
-  let sqlStr = "select goods_id from goods where goods_id=?";
 
-  pool_goods.query(sqlStr, reqdata.goods_id, (err, results) => {
-    if (err) return res.cc(err);
-    if (results.length) {
-      // 定义更新商品数量sql语句
-      const sql = "update goods set ? where num=?";
-      // 调用db.query()执行sql语句
-      pool_goods.query(sql, results.length, (err, results) => {
-        // 判断sql语句是否执行成功
-        if (err) return res.cc(err);
-      });
-    } else {
-      const sql = "insert into goods set ?";
-      pool_goods.query(
-        sql,
-        Object.assign(reqdata, { date: new Date().setHours(0, 0, 0, 0) }),
-        (err, results) => {
-          // 判断sql语句是否执行成功
-          if (err) return res.cc(err);
-        }
-      );
+  const sql =
+    "update card_list_9999 set ? where goodsId=? and storeId=? and userId=?";
+  // 调用db.query()执行sql语句
+  pool_card.query(
+    sql,
+    [{ num: !source ? +num + 1 : +num }, goodsId, storeId, userId],
+    (err, results) => {
+      // 2.2 判断sql语句是否执行成功
+      if (err) return res.cc(err);
+      // 3.返回成功提示
+      res.send({ status: 200, message: "成功" });
     }
-  });
+  );
+};
+
+const addRecord = (req, res) => {
+  const reqdata = req.body;
+  let { goodsId, storeId, userId } = reqdata;
+  if (!goodsId || !storeId || !userId) {
+    return res.cc("参数缺失");
+  }
+  const sql = "insert into record_list_9999 set ?";
+  pool_record.query(
+    sql,
+    Object.assign(
+      { ...reqdata, status: 1 },
+      { date: new Date().setHours(0, 0, 0, 0) }
+    ),
+    (err, results) => {
+      // 判断sql语句是否执行成功
+      if (err) return res.cc(err);
+    }
+  );
 };
 
 const getRecordList = (req, res) => {
+  let sqlstr = "select * from record_list_9999";
   const reqdata = req.body;
-  let { sql, reqArr } = paramsPlicing(sql, reqdata);
+  let params;
+  if (reqdata.status == 0) {
+    params = { userId: reqdata.userId };
+  } else {
+    params = reqdata;
+  }
+  let { sql, reqArr } = paramsPlicing(sqlstr, params);
   // 调用db.query()执行sql语句
-  pool_goods.query(sql, reqArr, (err, results) => {
+  pool_record.query(sql, reqArr, (err, results) => {
     // 判断sql语句是否执行成功
     if (err) return res.cc(err);
     // 返回数据
@@ -156,11 +174,12 @@ const getRecordList = (req, res) => {
 
 const pay = (req, res) => {
   const reqdata = req.body;
-  if (!reqdata.goods_id) {
+  let { goodsId, storeId, userId } = reqdata;
+  if (!goodsId || !storeId || !userId) {
     return res.cc("参数缺失");
   }
-  res.send({ status: 200, message: "成功" });
   addRecord(req, res);
+  res.send({ status: 200, message: "成功" });
 };
 
 export default {
@@ -168,6 +187,7 @@ export default {
   getGoodsDetail,
   addCart,
   deleteCart,
+  updateCartList,
   getCartList,
   addRecord,
   getRecordList,

@@ -13,7 +13,7 @@ export function verifyToken(req, res, next) {
     jwt.verify(token, "secretKey", (err, decoded) => {
       if (err) {
         console.log(err, "err");
-        return res.cc({ status: 401, message: "Token无效" });
+        return res.cc("Token无效", 401);
       }
       req.userId = decoded.userId;
       next();

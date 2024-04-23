@@ -13,7 +13,8 @@ router.get("/getGoodsDetail", goods_handler.getGoodsDetail);
 // 购物车
 router.post("/addCart", verifyToken, goods_handler.addCart);
 router.post("/getCartList", verifyToken, goods_handler.getCartList);
-router.post("/delCart", verifyToken, goods_handler.deleteCart);
+router.post("/updateCartList", verifyToken, goods_handler.updateCartList);
+router.post("/deleteCart", verifyToken, goods_handler.deleteCart);
 // 订单
 router.post("/addRecord", verifyToken, goods_handler.addRecord);
 router.post("/getRecordList", verifyToken, goods_handler.getRecordList);

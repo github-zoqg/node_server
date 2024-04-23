@@ -48,7 +48,11 @@ const login = (req, res) => {
     if (results.length && results[0].password === reqdata.password) {
       const token = createtoken(results[0].id);
       // res.json({ token });
-      return res.send({ status: 200, message: "登陆成功", data: { token } });
+      return res.send({
+        status: 200,
+        message: "登陆成功",
+        data: { ...results[0], token },
+      });
     } else {
       return res.cc("手机号或密码错误", 402);
     }
