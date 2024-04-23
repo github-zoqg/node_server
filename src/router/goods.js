@@ -6,6 +6,8 @@ import { verifyToken } from "../router/token.js";
 // 2.创建路由对象
 const router = express.Router();
 
+// 添加商品
+router.post("/addGoods", goods_handler.addGoods);
 // 获取商品列表
 router.get("/getGoodsList", goods_handler.getGoodsList);
 // 获取商品详情

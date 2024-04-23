@@ -3,10 +3,25 @@ import { paramsPlicing } from "../utils/index.js";
 
 let sqlstr = "select * from goods_list_9999";
 
+const addGoods = (req, res) => {
+  const reqdata = req.body;
+
+  let { goodsId, storeId, userId } = reqdata;
+  let sql = "insert into goods_list_9999 set ?";
+  pool_goods.query(sql, reqdata, (err, results) => {
+    // 2.2 判断sql语句是否执行成功
+    if (err) return res.cc(err);
+    // 3.返回成功提示
+    res.send({ status: 200, message: "成功" });
+  });
+};
 const getGoodsList = (req, res) => {
   const { page, pageSize } = req.query;
   const reqdata = req.query;
   let { sql, reqArr } = paramsPlicing(sqlstr, reqdata);
+  if (reqdata.keyword) {
+    sql = `${sqlstr} where keyword like "%${reqdata.keyword}%" `;
+  }
   // 调用db.query()执行sql语句
   console.log(sql, reqArr, "sql");
   pool_goods.query(sql, reqArr, (err, results) => {
@@ -49,20 +64,23 @@ const addCart = (req, res) => {
 
   let sqlstr = "select * from card_list_9999";
   let { goodsId, storeId, userId } = reqdata;
+  delete reqdata.volume;
+  delete reqdata.keyword;
   let { sql, reqArr } = paramsPlicing(sqlstr, { goodsId, storeId, userId });
   pool_card.query(sql, reqArr, (err, results) => {
     if (err) return res.cc(err);
     if (results.length) {
-      updateCartList(req, res);
+      updateCartList(req, res, results[0].num);
     } else {
       const sql = "insert into card_list_9999 set ?";
       pool_card.query(
         sql,
         Object.assign(
-          { ...reqdata, num: 1 },
+          { ...reqdata },
           { date: new Date().setHours(0, 0, 0, 0) }
         ),
         (err, results) => {
+          console.log(results, "results");
           // 2.2 判断sql语句是否执行成功
           if (err) return res.cc(err);
           // 3.返回成功提示
@@ -106,7 +124,7 @@ const getCartList = (req, res) => {
   });
 };
 
-const updateCartList = (req, res) => {
+const updateCartList = (req, res, oldNum) => {
   const reqdata = req.body;
   let { goodsId, storeId, userId, num, source } = reqdata;
   if (!goodsId || !storeId || !userId) {
@@ -118,7 +136,7 @@ const updateCartList = (req, res) => {
   // 调用db.query()执行sql语句
   pool_card.query(
     sql,
-    [{ num: !source ? +num + 1 : +num }, goodsId, storeId, userId],
+    [{ num: !source ? +num + oldNum : +num }, goodsId, storeId, userId],
     (err, results) => {
       // 2.2 判断sql语句是否执行成功
       if (err) return res.cc(err);
@@ -130,6 +148,8 @@ const updateCartList = (req, res) => {
 
 const addRecord = (req, res) => {
   const reqdata = req.body;
+  delete reqdata.volume;
+  delete reqdata.keyword;
   let { goodsId, storeId, userId } = reqdata;
   if (!goodsId || !storeId || !userId) {
     return res.cc("参数缺失");
@@ -144,6 +164,7 @@ const addRecord = (req, res) => {
     (err, results) => {
       // 判断sql语句是否执行成功
       if (err) return res.cc(err);
+      return res.send({ status: 200, message: "成功" });
     }
   );
 };
@@ -178,11 +199,11 @@ const pay = (req, res) => {
   if (!goodsId || !storeId || !userId) {
     return res.cc("参数缺失");
   }
-  addRecord(req, res);
-  res.send({ status: 200, message: "成功" });
+  return addRecord(req, res);
 };
 
 export default {
+  addGoods,
   getGoodsList,
   getGoodsDetail,
   addCart,
