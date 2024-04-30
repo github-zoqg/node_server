@@ -16,6 +16,6 @@ export const paramsPlicing = (sql, reqdata) => {
   if (reqArr.length == 1) {
     sql = sql + " where " + reqKeyArr[0] + "=?";
   }
-  console.log("sqlstr", sql, "reqdata", reqdata);
+  // console.log("sqlstr", sql, "reqdata", reqdata);
   return { reqArr, sql };
 };

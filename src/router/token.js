@@ -8,7 +8,7 @@ export const createtoken = (userId) => {
 // token验证
 export function verifyToken(req, res, next) {
   const token = req.headers.token;
-  console.log(token, "token");
+  // console.log(token, "token");
   if (token) {
     jwt.verify(token, "secretKey", (err, decoded) => {
       if (err) {

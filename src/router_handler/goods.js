@@ -23,7 +23,7 @@ const getGoodsList = (req, res) => {
     sql = `${sqlstr} where keyword like "%${reqdata.keyword}%" `;
   }
   // 调用db.query()执行sql语句
-  console.log(sql, reqArr, "sql");
+  // console.log(sql, reqArr, "sql");
   pool_goods.query(sql, reqArr, (err, results) => {
     // 判断sql语句是否执行成功
     if (err) return res.cc(err);
@@ -80,7 +80,7 @@ const addCart = (req, res) => {
           { date: new Date().setHours(0, 0, 0, 0) }
         ),
         (err, results) => {
-          console.log(results, "results");
+          // console.log(results, "results");
           // 2.2 判断sql语句是否执行成功
           if (err) return res.cc(err);
           // 3.返回成功提示

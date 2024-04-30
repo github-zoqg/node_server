@@ -8,6 +8,11 @@ import bodyParser from "body-parser";
 import router_user from "../router/index.js";
 import router_goods from "../router/goods.js";
 
+//直接引入https模块
+import https from "https";
+import fs from "fs";
+import path from "path";
+
 // 2.创建服务器的实例对象
 const app = express();
 app.use(cors());
@@ -56,6 +61,25 @@ app.use("/goods", router_goods);
 //   res.send("Received POST request");
 // });
 // 3.启动服务器
-app.listen(8089, () => {
-  console.log("api server running at http:127.0.0.1:8089");
-});
+// app.listen(8089, (...args) => {
+//   console.log(...args, "args");
+//   console.log("api server running at http:127.0.0.1:8089");
+// });
+
+//启动https服务
+//此处读取文件名称更改成自己下载的证书名称， 将证书放置到对应的目录下
+// console.log(
+//   import.meta.url,
+//   path.join(import.meta.url, "../../static/key.pem"),
+//   path.resolve("src/static/key.pem"),
+//   "import.meta.url"
+// );
+var pk = fs.readFileSync(path.resolve("src/static/key.pem"));
+var pc = fs.readFileSync(path.resolve("src/static/cert.pem"));
+var opt = {
+  key: pk,
+  cert: pc,
+};
+
+var server = https.createServer(opt, app);
+server.listen(8089);
