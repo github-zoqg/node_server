@@ -61,10 +61,10 @@ app.use("/goods", router_goods);
 //   res.send("Received POST request");
 // });
 // 3.启动服务器
-// app.listen(8089, (...args) => {
-//   console.log(...args, "args");
-//   console.log("api server running at http:127.0.0.1:8089");
-// });
+app.listen(8089, (...args) => {
+  console.log(...args, "args");
+  console.log("api server running at http://127.0.0.1:8089");
+});
 
 //启动https服务
 //此处读取文件名称更改成自己下载的证书名称， 将证书放置到对应的目录下
@@ -74,12 +74,12 @@ app.use("/goods", router_goods);
 //   path.resolve("src/static/key.pem"),
 //   "import.meta.url"
 // );
-var pk = fs.readFileSync(path.resolve("src/static/key.pem"));
-var pc = fs.readFileSync(path.resolve("src/static/cert.pem"));
-var opt = {
-  key: pk,
-  cert: pc,
-};
+// var pk = fs.readFileSync(path.resolve("src/static/key.pem"));
+// var pc = fs.readFileSync(path.resolve("src/static/cert.pem"));
+// var opt = {
+//   key: pk,
+//   cert: pc,
+// };
 
-var server = https.createServer(opt, app);
-server.listen(8089);
+// var server = https.createServer(opt, app);
+// server.listen(8089);
